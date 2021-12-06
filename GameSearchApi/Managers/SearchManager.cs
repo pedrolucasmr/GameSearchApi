@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using GameSearchApi.Helpers;
 using GameSearchApi.Managers.Interfaces;
+using GameSearchApi.Mappers;
+using GameSearchApi.Models;
 using GameSearchApi.Models.Enums;
 using GameSearchApi.Models.Interfaces;
 using GameSearchApi.Models.Request;
@@ -12,17 +16,18 @@ namespace GameSearchApi.Managers
     public class SearchManager : ISearchManager
     {
         private readonly ISearchRepository _searchRepository;
-        public SearchManager(ISearchRepository searchRepository)
+        private readonly CoreHelper _coreHelper;
+        public SearchManager(ISearchRepository searchRepository, CoreHelper coreHelper)
         {
             this._searchRepository = searchRepository;
+            this._coreHelper = coreHelper;
         }
         
         public ISearchResult CreateSearch(CreateSearchRequest request)
         {
-            ISearchResult result;
             if (FindSearch(request.Id.ToString()) != null)
             {
-                result = this._searchRepository.GetSearchResultBySearchRequestId(request.Id.ToString());
+                var result = this._searchRepository.GetSearchResultBySearchRequestId(request.Id.ToString());
                 
                 if (result != null)
                 {
@@ -34,17 +39,17 @@ namespace GameSearchApi.Managers
             switch (request.Type)
             {
                 case SearchTypes.GameSearch:
-                    return GetBestGames(request.TimeIntervalInDays);
+                    return GetBestGames(request.Id.ToString(), request.TimeIntervalInDays);
                 case SearchTypes.GenreSearch:
-                    return GetBestGamesByGenre(request.Genres, request.TimeIntervalInDays);
+                    return GetBestGamesByGenre(request.Id.ToString(),request.Genres, request.TimeIntervalInDays);
                 case SearchTypes.TitleSearch:
-                    return GetGamesByTitle(request.Titles);
+                    return GetGamesByTitle(request.Id.ToString(),request.Titles);
                 case SearchTypes.DeveloperSearch:
-                    return GetBestGamesByDeveloper(request.Developers);
+                    return GetBestGamesByDeveloper(request.Id.ToString(),request.Developers);
                 case SearchTypes.PlatformSearch:
-                    return GetBestGamesByPlatform(request.Platforms, request.TimeIntervalInDays);
+                    return GetBestGamesByPlatform(request.Id.ToString(),request.Platforms, request.TimeIntervalInDays);
                 case SearchTypes.ReleaseYearSearch:
-                    return GetBestGamesByReleaseYear(request.ReleaseYears);
+                    return GetBestGamesByReleaseYear(request.Id.ToString(),request.ReleaseYears);
                 default:
                     throw new BadRequestException("Invalid Search Type");
             }
@@ -55,34 +60,44 @@ namespace GameSearchApi.Managers
             throw new System.NotImplementedException();
         }
 
-        public ISearchResult GetBestGames(int? timeInterval = 7)
+        public ISearchResult GetBestGames(string searchId, int? timeInterval = 7)
         {
-            throw new System.NotImplementedException();
+            return SearchResultMapper.MapBestGamesSearchResult(searchId, this._coreHelper.CreateSearch(null));
         }
 
-        public ISearchResult GetBestGamesByGenre(List<GameGenres> genres, int? timeInterval = 7)
+        public ISearchResult GetBestGamesByGenre(string searchId, List<GameGenres> genres, int? timeInterval = 7)
         {
-            throw new System.NotImplementedException();
+            var coreRequest = new CoreRequest(createdAt: DateTime.UtcNow, genres);
+
+            return SearchResultMapper.MapBestGamesSearchResult(searchId, this._coreHelper.CreateSearch(coreRequest));
         }
 
-        public ISearchResult GetGamesByTitle(List<string> titles)
+        public ISearchResult GetGamesByTitle(string searchId, List<string> titles)
         {
-            throw new System.NotImplementedException();
+            var coreRequest = new CoreRequest(createdAt: DateTime.UtcNow, titles:titles);
+
+            return SearchResultMapper.MapBestGamesSearchResult(searchId, this._coreHelper.CreateSearch(coreRequest));
         }
 
-        public ISearchResult GetBestGamesByPlatform(List<GamePlatform> platforms, int? timeInterval = 7)
+        public ISearchResult GetBestGamesByPlatform(string searchId, List<GamePlatform> platforms, int? timeInterval = 7)
         {
-            throw new System.NotImplementedException();
+            var coreRequest = new CoreRequest(createdAt: DateTime.UtcNow, platforms:platforms);
+
+            return SearchResultMapper.MapBestGamesSearchResult(searchId, this._coreHelper.CreateSearch(coreRequest));
         }
 
-        public ISearchResult GetBestGamesByDeveloper(List<GameDeveloper> developers)
+        public ISearchResult GetBestGamesByDeveloper(string searchId, List<GameDeveloper> developers)
         {
-            throw new System.NotImplementedException();
+            var coreRequest = new CoreRequest(createdAt: DateTime.UtcNow, developers:developers);
+
+            return SearchResultMapper.MapBestGamesSearchResult(searchId, this._coreHelper.CreateSearch(coreRequest));
         }
 
-        public ISearchResult GetBestGamesByReleaseYear(List<int> years)
+        public ISearchResult GetBestGamesByReleaseYear(string searchId, List<int> years)
         {
-            throw new System.NotImplementedException();
+            var coreRequest = new CoreRequest(createdAt: DateTime.UtcNow, releaseYears:years);
+
+            return SearchResultMapper.MapBestGamesSearchResult(searchId, this._coreHelper.CreateSearch(coreRequest));
         }
     }
 }

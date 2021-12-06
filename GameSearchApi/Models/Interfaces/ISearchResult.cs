@@ -2,9 +2,9 @@
 
 namespace GameSearchApi.Models.Interfaces
 {
-    public class ISearchResult
+    public interface ISearchResult
     {
-        Guid Id { get; set; }
-        private string SearchRequestId { get; set; }
+        abstract Guid Id { get; set; }
+        abstract string SearchRequestId { get; set; }
     }
 }
